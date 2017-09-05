@@ -1,7 +1,7 @@
 //FUNCTION - ADD THE TICKET FROM THE FORM AND SEND EMAILS TO THE CUSTOMER AND SUPPORT
 function onFormSubmit() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var responsesSheet = ss.getSheetByName("Odpovědi formuláře"); //rename the name of the answers sheet by your name
+  var responsesSheet = ss.getSheetByName("Form answers"); //rename the name of the answers sheet by your name
   
   //format the sheet with answers
   responsesSheet.getDataRange().setHorizontalAlignment("center")
@@ -59,11 +59,11 @@ This is a copy of your email sent to on our support department. We confirm you t
 ";
 
   //getting email adresses with support emails (in case of different support email addresses)
-  var supportContacts = ss.getSheetByName("Emaily"); //edit the name of the sheet with your support emails sheet
+  var supportContacts = ss.getSheetByName("Emails"); //edit the name of the sheet with your support emails sheet
   var numEmailRows = supportContacts.getLastRow();
   
   //condition for different support email adresses
-  if(type==="Licence (přidání dalších licencí, prodloužení, odebrání...)") { //edit the condition to the value of your first selectbox type of ticket
+  if(type==="Licences") { //edit the condition to the value of your first selectbox type of ticket
     var emailTo = supportContacts.getRange(2, 2, numEmailRows, 1).getValues();
   } else {
     var emailTo = supportContacts.getRange(2, 1, numEmailRows, 1).getValues();
@@ -78,12 +78,12 @@ This is a copy of your email sent to on our support department. We confirm you t
 function onEdit(event) { 
   var timezone = "GMT+2"; //set your timezone
   var timestamp_format = "dd-MM-YYYY"; //set your timestamp format
-  var updateColName = "Stav řešení"; //edit to the name of your column "G"
-  var timeStampColName = "Datum posledního updatu"; //edit to the name of your column "H"
-  var sheet = event.source.getSheetByName('Odpovědi formuláře'); //edit to the name of your sheet with the answeres
+  var updateColName = "State"; //edit to the name of your column "G"
+  var timeStampColName = "Date of the last update"; //edit to the name of your column "H"
+  var sheet = event.source.getSheetByName('Form answers'); //edit to the name of your sheet with the answeres
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var responsesSheet = ss.getSheetByName("Odpovědi formuláře"); //edit to the name of your sheet with the answeres
+  var responsesSheet = ss.getSheetByName("Form answers"); //edit to the name of your sheet with the answeres
   var lastRow = responsesSheet.getLastRow();
   var lastColumn = responsesSheet.getLastColumn();
 
@@ -100,13 +100,13 @@ function onEdit(event) {
     var notification = sheet.getRange(index, dateCol + 2); //Initialization of an active row and column "Notification (I)"
     var date = Utilities.formatDate(new Date(), "GMT+2", "dd.MM.YYYY HH:mm") //edit to your timezone and timeformat
     lastUpdate.setValue(date); //set today`s date in column "Last update date"
-    notification.setValue("") //erase "NO" in column "Notification"
+    notification.setValue("") //erasing "NO" in column "Notification"
   }
 }
 
 //FUNCTION - COMPARE TODAY`S DATE AND DATE OF THE LAST UPDATE
 function notification() {
-  var responsesSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Odpovědi formuláře"); //edit to the name of your sheet with the answeres
+  var responsesSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Form answers"); //edit to the name of your sheet with the answeres
   SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
   var lastRow = responsesSheet.getLastRow();
   var columnH = responsesSheet.getRange(1, 8, responsesSheet.getLastRow(), 1).getValues();
@@ -124,7 +124,7 @@ function notification() {
     var notificationCol = responsesSheet.getRange(i+1, 9);//get column "Notification"
     
     //1. condition - last update is older than today and state is "Solving" and Notification doesn`t contain "NO"
-    if (dataday < today && specificState == "Řeší se" && notificationState !== "NE"){ //edit to your "In progress" value in the form and edit "NE" to "NO"
+    if (dataday < today && specificState == "In progress" && notificationState != "NO"){
       {
         var lastColumn = responsesSheet.getLastColumn();
         var lastRowValues = responsesSheet.getRange(i+1, 1, 7, lastColumn).getValues();
@@ -151,12 +151,12 @@ function notification() {
         GmailApp.sendEmail(email,emailSubject,emailBody, {htmlBody: emailBody, replyTo: "yoursupport@email.com"});
         
         //sets value "NO" to the "Notification" column
-        notificationCol.setValue("NE").setVerticalAlignment("center"); //edit value to "NO" or any other "NO" in your language :-)
+        notificationCol.setValue("NO").setVerticalAlignment("center");
       }
     }
     
     //2. condition - last update is older than today and state is "Waiting for the customer" and Notification doesn`t contain "NO"
-    else if (dataday < today && specificState == "Čeká se na reakci zákazníka" && notificationState !== "NE"){ //edit to your "Waiting for the customer" value in the form and edit "NE" to "NO"
+    else if (dataday < today && specificState == "Waiting for the customer" && notificationState != "NO"){ 
       {
         var lastColumn = responsesSheet.getLastColumn();
         var lastRowValues = responsesSheet.getRange(i+1, 1, 7, lastColumn).getValues();
@@ -185,12 +185,12 @@ function notification() {
         GmailApp.sendEmail(email,emailSubject,emailBody, {htmlBody: emailBody, replyTo: "yoursupport@email.com"}); //change it to your email
         
         //sets value "NO" to the "Notification" column
-        notificationCol.setValue("NE").setVerticalAlignment("center"); //edit value to "NO" or any other "NO" in your language :-)
+        notificationCol.setValue("NO").setVerticalAlignment("center");
        }
      }
     
     //3. condition - last update is older than today and state is "Done - Closed" and Notification doesn`t contain "NO"
-    else if (dataday < today && specificState == "Hotovo - Uzavřeno" && notificationState !== "NE"){ //edit to your "Done - Closed" value in the form and edit "NE" to "NO"
+    else if (dataday < today && specificState == "Done - Closed" && notificationState != "NO"){
       {
         var lastColumn = responsesSheet.getLastColumn();
         var lastRowValues = responsesSheet.getRange(i+1, 1, 7, lastColumn).getValues();
@@ -219,7 +219,7 @@ function notification() {
         GmailApp.sendEmail(email,emailSubject,emailBody, {htmlBody: emailBody, replyTo: "yoursupport@email.com"}); //change it to your email
         
         //sets value "NO" to the "Notification" column
-        notificationCol.setValue("NE").setVerticalAlignment("center"); //edit value to "NO" or any other "NO" in your language :-)
+        notificationCol.setValue("NO").setVerticalAlignment("center");
        }
      }
 }
